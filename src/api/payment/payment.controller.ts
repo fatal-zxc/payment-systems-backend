@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common'
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 
 import { Auth, Authorized } from '@shared/decorators'
@@ -27,8 +27,14 @@ export class PaymentController {
 
 	@ApiBearerAuth()
 	@Auth()
-	@Post()
+	@Post('init')
 	async init(@Body() dto: InitPaymentRequest, @Authorized('id') userId: string) {
 		return await this.paymentService.init(dto, userId)
+	}
+
+	@Post('webhook')
+	@HttpCode(HttpStatus.OK)
+	async webhook(@Body() dto: any) {
+		console.log('PAYMENT WEBHOOK', dto)
 	}
 }
