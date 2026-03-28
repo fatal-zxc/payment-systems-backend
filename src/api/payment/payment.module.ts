@@ -5,9 +5,10 @@ import { PaymentService } from './payment.service'
 import { StripeModule } from './providers/stripe/stripe.module'
 import { YoomoneyModule } from './providers/yoomoney/yoomoney.module'
 import { WebhookModule } from './webhook/webhook.module'
+import { CryptopayModule } from './providers/cryptopay/cryptopay.module';
 
 @Module({
-	imports: [WebhookModule, YoomoneyModule, StripeModule],
+	imports: [WebhookModule, YoomoneyModule, StripeModule, CryptopayModule],
 	controllers: [PaymentController],
 	providers: [PaymentService],
 })

@@ -20,4 +20,12 @@ export class WebhookController {
 	async handleStripe(@Req() req: RawBodyRequest<Request>, @Headers('stripe-signature') signature: string) {
 		return await this.webhookService.handleStripe(req.rawBody, signature)
 	}
+
+	@Post('cryptopay')
+	@HttpCode(200)
+	async handleCryptopay(@Body() dto: any) {
+		console.log('CRYPTOPAY WEBHOOK: ', dto)
+
+		return dto
+	}
 }

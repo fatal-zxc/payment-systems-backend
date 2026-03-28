@@ -6,6 +6,7 @@ import { PrismaService } from '@core/prisma/prisma.service'
 import { returnTransactionObject } from '@shared/objects'
 
 import { InitPaymentRequest } from './dto'
+import { CryptopayService } from './providers/cryptopay/cryptopay.service'
 import { StripeService } from './providers/stripe/stripe.service'
 import { YoomoneyService } from './providers/yoomoney/yoomoney.service'
 
@@ -14,7 +15,8 @@ export class PaymentService {
 	constructor(
 		private readonly prismaService: PrismaService,
 		private readonly yoomoneyService: YoomoneyService,
-		private readonly stripeService: StripeService
+		private readonly stripeService: StripeService,
+		private readonly cryptopayService: CryptopayService
 	) {}
 
 	async getHistory(userId: string) {
@@ -77,9 +79,11 @@ export class PaymentService {
 
 		switch (provider) {
 			case PaymentProvider.YOOKASSA:
-				payment = await this.yoomoneyService.create(plan, transaction, billingPeriod)
+				payment = await this.yoomoneyService.create(plan, transaction)
 			case PaymentProvider.STRIPE:
 				payment = await this.stripeService.create(plan, transaction, user, billingPeriod)
+			case PaymentProvider.CRYPTOPAY:
+				payment = await this.cryptopayService.createInvoice(plan, transaction)
 		}
 
 		await this.prismaService.transaction.update({
