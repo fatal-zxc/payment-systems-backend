@@ -34,6 +34,9 @@ model Plan {
   monthlyPrice Float @map("monthly_price")
   yearlyPrice  Float @map("yearly_price")
 
+  stripeMonthlyPriceId String @map("stripe_monthly_price_id")
+  stripeYearlyPriceId  String @map("stripe_yearly_price_id")
+
   isFeatured Boolean @default(false) @map("is_featured")
 
   subscriptions UserSubscription[]

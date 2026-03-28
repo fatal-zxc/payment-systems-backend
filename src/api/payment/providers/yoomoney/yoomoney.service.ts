@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { BillingPeriod, Plan, Transaction } from '@prisma/generated/client'
 import { ConfirmationEnum, CurrencyEnum, PaymentMethodsEnum, YookassaService } from 'nestjs-yookassa'
 import { PaymentService } from 'nestjs-yookassa/dist/modules/payment/payment.service'
@@ -6,7 +7,10 @@ import { PaymentService } from 'nestjs-yookassa/dist/modules/payment/payment.ser
 @Injectable()
 export class YoomoneyService {
 	private readonly paymentService: PaymentService
-	constructor(private readonly yookassaService: YookassaService) {
+	constructor(
+		private readonly yookassaService: YookassaService,
+		private readonly configService: ConfigService
+	) {
 		this.paymentService = yookassaService.payments
 	}
 
@@ -24,7 +28,7 @@ export class YoomoneyService {
 			},
 			confirmation: {
 				type: ConfirmationEnum.REDIRECT,
-				return_url: 'http://localhost:3000',
+				return_url: this.configService.getOrThrow<string>('FRONTEND_URL'),
 			},
 			save_payment_method: true,
 			metadata: {

@@ -1,5 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post } from '@nestjs/common'
 import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { User } from '@prisma/generated/client'
 
 import { Auth, Authorized } from '@shared/decorators'
 
@@ -28,13 +29,7 @@ export class PaymentController {
 	@ApiBearerAuth()
 	@Auth()
 	@Post('init')
-	async init(@Body() dto: InitPaymentRequest, @Authorized('id') userId: string) {
-		return await this.paymentService.init(dto, userId)
-	}
-
-	@Post('webhook')
-	@HttpCode(HttpStatus.OK)
-	async webhook(@Body() dto: any) {
-		console.log('PAYMENT WEBHOOK', dto)
+	async init(@Body() dto: InitPaymentRequest, @Authorized() user: User) {
+		return await this.paymentService.init(dto, user)
 	}
 }

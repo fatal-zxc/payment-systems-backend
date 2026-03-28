@@ -6,13 +6,15 @@ import { PrismaService } from '@core/prisma/prisma.service'
 import { returnTransactionObject } from '@shared/objects'
 
 import { InitPaymentRequest } from './dto'
+import { StripeService } from './providers/stripe/stripe.service'
 import { YoomoneyService } from './providers/yoomoney/yoomoney.service'
 
 @Injectable()
 export class PaymentService {
 	constructor(
 		private readonly prismaService: PrismaService,
-		private readonly yoomoneyService: YoomoneyService
+		private readonly yoomoneyService: YoomoneyService,
+		private readonly stripeService: StripeService
 	) {}
 
 	async getHistory(userId: string) {
@@ -25,7 +27,7 @@ export class PaymentService {
 		return transactions
 	}
 
-	async init(dto: InitPaymentRequest, userId: string) {
+	async init(dto: InitPaymentRequest, user: User) {
 		const { planId, billingPeriod, provider } = dto
 
 		const plan = await this.prismaService.plan.findUnique({
@@ -45,18 +47,18 @@ export class PaymentService {
 				billingPeriod,
 				user: {
 					connect: {
-						id: userId,
+						id: user.id,
 					},
 				},
 				userSubscription: {
 					connectOrCreate: {
 						where: {
-							userId,
+							id: user.id,
 						},
 						create: {
 							user: {
 								connect: {
-									id: userId,
+									id: user.id,
 								},
 							},
 							plan: {
@@ -76,6 +78,8 @@ export class PaymentService {
 		switch (provider) {
 			case PaymentProvider.YOOKASSA:
 				payment = await this.yoomoneyService.create(plan, transaction, billingPeriod)
+			case PaymentProvider.STRIPE:
+				payment = await this.stripeService.create(plan, transaction, user, billingPeriod)
 		}
 
 		await this.prismaService.transaction.update({
