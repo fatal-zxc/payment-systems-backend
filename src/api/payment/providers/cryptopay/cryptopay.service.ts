@@ -1,12 +1,13 @@
 import { HttpService } from '@nestjs/axios'
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { BillingPeriod, Plan, Transaction } from '@prisma/generated/client'
+import { createHash, createHmac } from 'node:crypto'
 import { firstValueFrom } from 'rxjs'
 
 import { CRYPTO_PAY_API_URL } from '@api/payment/constants'
 
-import { CreateInvoiceRequest, CreateInvoiceResponse, CryptoResponse, FiatCurrency, PaidButtonName } from './interfaces'
+import { CreateInvoiceRequest, CreateInvoiceResponse, CryptoResponse, Currency, FiatCurrency, PaidButtonName } from './interfaces'
 
 @Injectable()
 export class CryptopayService {
@@ -22,7 +23,7 @@ export class CryptopayService {
 	async createInvoice(plan: Plan, transaction: Transaction) {
 		const payload: CreateInvoiceRequest = {
 			amount: transaction.amount,
-			currency_type: 'fiat',
+			currency_type: Currency.FIAT,
 			fiat: FiatCurrency.RUB,
 			description: `Оплата подписки на тарифный план "${plan.title}"`,
 			hidden_message: 'Спасибо за оплату! Подписка активирована.',
@@ -33,6 +34,23 @@ export class CryptopayService {
 		const response = await this.makeRequest<CreateInvoiceResponse>('POST', '/createInvoice', payload)
 
 		return response.result
+	}
+
+	verifyWebhook(rawBody: Buffer, signature: string) {
+		const secret = createHash('sha256').update(this.TOKEN).digest()
+		const hmac = createHmac('sha256', secret).update(rawBody).digest('hex')
+
+		if (hmac !== signature) throw new BadRequestException('Invalid signature')
+
+		return true
+	}
+
+	isFreshRequest(body: any, maxAgeSeconds: number = 300) {
+		const requestDate = new Date(body.request_date).getTime()
+
+		const now = Date.now()
+
+		return now - requestDate <= maxAgeSeconds * 1000
 	}
 
 	private async makeRequest<T>(method: 'GET' | 'POST', endpoint: string, data?: any) {

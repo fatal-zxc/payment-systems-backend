@@ -80,10 +80,13 @@ export class PaymentService {
 		switch (provider) {
 			case PaymentProvider.YOOKASSA:
 				payment = await this.yoomoneyService.create(plan, transaction)
+				break
 			case PaymentProvider.STRIPE:
 				payment = await this.stripeService.create(plan, transaction, user, billingPeriod)
+				break
 			case PaymentProvider.CRYPTOPAY:
 				payment = await this.cryptopayService.createInvoice(plan, transaction)
+				break
 		}
 
 		await this.prismaService.transaction.update({

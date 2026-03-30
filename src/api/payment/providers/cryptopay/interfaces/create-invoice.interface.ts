@@ -1,4 +1,4 @@
-import { AcceptedCryptoAsset, CryptoAsset, CurrencyType, FiatCurrency } from './common.interface'
+import { AcceptedCryptoAsset, CryptoAsset, Currency, FiatCurrency } from './common.interface'
 
 export enum PaidButtonName {
 	VIEW_ITEM = 'viewItem',
@@ -7,7 +7,11 @@ export enum PaidButtonName {
 	CALLBACK = 'callback',
 }
 
-export type InvoiceStatus = 'active' | 'paid' | 'expired'
+export enum InvoiceStatus {
+	ACTIVE = 'active',
+	PAID = 'paid',
+	EXPIRED = 'expired',
+}
 
 export enum SwapAsset {
 	USDT = 'USDT',
@@ -20,7 +24,7 @@ export enum SwapAsset {
 }
 
 export interface CreateInvoiceRequest {
-	currency_type: CurrencyType
+	currency_type: Currency
 	asset?: CryptoAsset
 	fiat?: FiatCurrency
 	accepted_assets?: AcceptedCryptoAsset
@@ -38,7 +42,7 @@ export interface CreateInvoiceRequest {
 export interface CreateInvoiceResponse {
 	invoice_id: number
 	hash: string
-	currency_type: CurrencyType
+	currency_type: Currency
 	asset?: CryptoAsset
 	fiat?: FiatCurrency
 	amount: string

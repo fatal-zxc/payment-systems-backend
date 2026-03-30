@@ -44,7 +44,10 @@ export enum AcceptedCryptoAsset {
 	JET = 'JET', // JET (только для testnet)
 }
 
-export type CurrencyType = 'crypto' | 'fiat'
+export enum Currency {
+	CRYPTO = 'crypto',
+	FIAT = 'fiat',
+}
 
 export interface CryptoResponse<T> {
 	ok: boolean
