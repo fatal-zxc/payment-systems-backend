@@ -3,7 +3,7 @@ import { BillingPeriod, PaymentProvider, User } from '@prisma/generated/client'
 
 import { PrismaService } from '@core/prisma/prisma.service'
 
-import { returnTransactionObject } from '@shared/objects'
+import { returnPlanObject, returnTransactionObject } from '@shared/objects'
 
 import { InitPaymentRequest } from './dto'
 import { CryptopayService } from './providers/cryptopay/cryptopay.service'
@@ -36,6 +36,7 @@ export class PaymentService {
 			where: {
 				id: planId,
 			},
+			select: returnPlanObject,
 		})
 
 		if (!plan) throw new NotFoundException('План не найден')

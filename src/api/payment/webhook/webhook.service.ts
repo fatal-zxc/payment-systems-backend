@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 
+import { PaymentHandler } from '../payment.handler'
 import { CryptopayService } from '../providers/cryptopay/cryptopay.service'
 import { StripeService } from '../providers/stripe/stripe.service'
 import { YoomoneyService } from '../providers/yoomoney/yoomoney.service'
@@ -10,6 +11,7 @@ import { CryptopayWebhookDto } from './dto/cryptopay-webhook.dto'
 @Injectable()
 export class WebhookService {
 	constructor(
+		private readonly paymentHandler: PaymentHandler,
 		private readonly stripeService: StripeService,
 		private readonly cryptopayService: CryptopayService,
 		private readonly yoomoneyService: YoomoneyService
@@ -18,17 +20,23 @@ export class WebhookService {
 	async handleYookassa(dto: YookassaWebhookDto, ip: string) {
 		this.yoomoneyService.verifyWebhook(ip)
 
-		console.log('YOOKASSA WEBHOOK: ', dto)
+		console.log(dto)
 
-		return { message: 'success' }
+		const result = await this.yoomoneyService.handleWebhook(dto)
+
+		if (!result) return { message: 'success' }
+
+		return await this.paymentHandler.processResult(result)
 	}
 
 	async handleStripe(rawBody: Buffer, signature: string) {
 		const event = await this.stripeService.parseEvent(rawBody, signature)
 
-		console.log('STRIPE WEBHOOK: ', event)
+		const result = await this.stripeService.handleWebhook(event)
 
-		return { message: 'success' }
+		if (!result) return { message: 'success' }
+
+		return await this.paymentHandler.processResult(result)
 	}
 
 	async handleCryptopay(rawBody: Buffer, signature: string) {
@@ -38,8 +46,10 @@ export class WebhookService {
 
 		if (!this.cryptopayService.isFreshRequest(body)) throw new BadRequestException('Request too old')
 
-		console.log('CRYPTO WEBHOOK: ', body)
+		const result = await this.cryptopayService.handleWebhook(body)
 
-		return { message: 'success' }
+		if (!result) return { message: 'success' }
+
+		return await this.paymentHandler.processResult(result)
 	}
 }

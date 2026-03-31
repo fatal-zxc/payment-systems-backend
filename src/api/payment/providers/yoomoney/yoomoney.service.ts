@@ -1,9 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { Plan, Transaction } from '@prisma/generated/client'
+import { Plan, Transaction, TransactionStatus } from '@prisma/generated/client'
 import CIDR from 'ip-cidr'
 import { ConfirmationEnum, CurrencyEnum, PaymentMethodsEnum, YookassaService } from 'nestjs-yookassa'
 import { PaymentService } from 'nestjs-yookassa/dist/modules/payment/payment.service'
+
+import { TPlan, TTransaction } from '@shared/objects'
+
+import { PaymentWebhookResult } from '@api/payment/interfaces'
+import { YookassaWebhookDto } from '@api/payment/webhook/dto'
 
 @Injectable()
 export class YoomoneyService {
@@ -27,7 +32,7 @@ export class YoomoneyService {
 		]
 	}
 
-	async create(plan: Plan, transaction: Transaction) {
+	async create(plan: TPlan, transaction: TTransaction) {
 		const payment = await this.paymentService.create({
 			amount: {
 				value: transaction.amount,
@@ -44,10 +49,42 @@ export class YoomoneyService {
 			save_payment_method: true,
 			metadata: {
 				provider: 'yookassa',
+				transactionId: transaction.id,
+				planId: plan.id,
 			},
 		})
 
 		return payment
+	}
+
+	async handleWebhook(dto: YookassaWebhookDto): Promise<PaymentWebhookResult | null> {
+		if (!dto.object.metadata) return null
+		const { transactionId, planId } = dto.object.metadata
+		const paymentId = dto.object.id
+
+		if (!transactionId || !planId) return null
+
+		let status: TransactionStatus = TransactionStatus.PENDING
+
+		switch (dto.event) {
+			case 'payment.waiting_for_capture':
+				await this.paymentService.capture(paymentId)
+				break
+			case 'payment.succeeded':
+				status = TransactionStatus.SUCCESS
+				break
+			case 'payment.canceled':
+				status = TransactionStatus.FAILED
+				break
+		}
+
+		return {
+			paymentId,
+			planId,
+			transactionId,
+			status,
+			raw: dto,
+		}
 	}
 
 	verifyWebhook(ip: string) {

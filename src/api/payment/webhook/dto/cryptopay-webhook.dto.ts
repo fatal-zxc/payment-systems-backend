@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer'
-import { IsArray, IsBoolean, IsEnum, IsNumberString, IsOptional, IsString, ValidateNested } from 'class-validator'
+import { IsArray, IsBoolean, IsEnum, IsNumber, IsNumberString, IsOptional, IsString, ValidateNested } from 'class-validator'
 
 import { AcceptedCryptoAsset, Currency, InvoiceStatus } from '@api/payment/providers/cryptopay/interfaces'
 
@@ -8,8 +8,8 @@ export enum UpdateType {
 }
 
 export class CryptopayPayload {
-	@IsNumberString()
-	invoice_id: string | number
+	@IsNumber()
+	invoice_id: number
 
 	@IsString()
 	hash: string

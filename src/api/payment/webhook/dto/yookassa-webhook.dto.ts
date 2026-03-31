@@ -85,7 +85,7 @@ export class PaymentObject {
 
 	@IsOptional()
 	@IsObject()
-	metadata?: object
+	metadata?: Record<string, string>
 
 	@IsOptional()
 	@ValidateNested()

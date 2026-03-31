@@ -19,7 +19,7 @@ export class WebhookController {
 	async handleStripe(@Req() req: RawBodyRequest<Request>, @Headers('stripe-signature') signature: string) {
 		if (!signature) throw new BadRequestException('Missing signature')
 
-		return await this.webhookService.handleStripe(req.rawBody, signature)
+		return await this.webhookService.handleStripe(req.rawBody!, signature)
 	}
 
 	@Post('cryptopay')
@@ -27,6 +27,6 @@ export class WebhookController {
 	async handleCryptopay(@Req() req: RawBodyRequest<Request>, @Headers('crypto-pay-api-signature') signature: string) {
 		if (!signature) throw new BadRequestException('Missing signature')
 
-		return await this.webhookService.handleCryptopay(req.rawBody, signature)
+		return await this.webhookService.handleCryptopay(req.rawBody!, signature)
 	}
 }

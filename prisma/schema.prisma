@@ -114,7 +114,6 @@ enum TransactionStatus {
   PENDING
   SUCCESS
   FAILED
-  CANCELLED
 
   @@map("transaction_statuses")
 }
