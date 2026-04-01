@@ -20,26 +20,28 @@ export class WebhookService {
 	async handleYookassa(dto: YookassaWebhookDto, ip: string) {
 		this.yoomoneyService.verifyWebhook(ip)
 
-		console.log(dto)
-
 		const result = await this.yoomoneyService.handleWebhook(dto)
 
 		if (!result) return { message: 'success' }
 
-		return await this.paymentHandler.processResult(result)
+		return this.paymentHandler.processResult(result)
 	}
 
 	async handleStripe(rawBody: Buffer, signature: string) {
+		if (!signature) throw new BadRequestException('Missing signature')
+
 		const event = await this.stripeService.parseEvent(rawBody, signature)
 
 		const result = await this.stripeService.handleWebhook(event)
 
 		if (!result) return { message: 'success' }
 
-		return await this.paymentHandler.processResult(result)
+		return this.paymentHandler.processResult(result)
 	}
 
 	async handleCryptopay(rawBody: Buffer, signature: string) {
+		if (!signature) throw new BadRequestException('Missing signature')
+
 		this.cryptopayService.verifyWebhook(rawBody, signature)
 
 		const body: CryptopayWebhookDto = JSON.parse(rawBody.toString())
@@ -50,6 +52,6 @@ export class WebhookService {
 
 		if (!result) return { message: 'success' }
 
-		return await this.paymentHandler.processResult(result)
+		return this.paymentHandler.processResult(result)
 	}
 }

@@ -80,7 +80,7 @@ export class PaymentHandler {
 		} else if (status === TransactionStatus.FAILED) {
 			await this.mailService.sendPaymentFailedEmail(subscription.user, updatedTransaction)
 
-			this.logger.log(`Payment failed: ${subscription.user.email}`)
+			this.logger.error(`❌ Payment failed: ${subscription.user.email}`)
 		}
 
 		return { message: 'success' }

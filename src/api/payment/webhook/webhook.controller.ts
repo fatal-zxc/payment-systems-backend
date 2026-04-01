@@ -11,22 +11,18 @@ export class WebhookController {
 	@Post('yookassa')
 	@HttpCode(200)
 	async handleYookassa(@Body() dto: YookassaWebhookDto, @Ip() ip: string) {
-		return await this.webhookService.handleYookassa(dto, ip)
+		return this.webhookService.handleYookassa(dto, ip)
 	}
 
 	@Post('stripe')
 	@HttpCode(200)
 	async handleStripe(@Req() req: RawBodyRequest<Request>, @Headers('stripe-signature') signature: string) {
-		if (!signature) throw new BadRequestException('Missing signature')
-
-		return await this.webhookService.handleStripe(req.rawBody!, signature)
+		return this.webhookService.handleStripe(req.rawBody!, signature)
 	}
 
 	@Post('cryptopay')
 	@HttpCode(200)
 	async handleCryptopay(@Req() req: RawBodyRequest<Request>, @Headers('crypto-pay-api-signature') signature: string) {
-		if (!signature) throw new BadRequestException('Missing signature')
-
-		return await this.webhookService.handleCryptopay(req.rawBody!, signature)
+		return this.webhookService.handleCryptopay(req.rawBody!, signature)
 	}
 }

@@ -13,6 +13,7 @@ export const returnTransactionObject = {
 	provider: true,
 	status: true,
 	billingPeriod: true,
+	externalId: true,
 } satisfies TransactionSelect
 
 export type TTransaction = TransactionGetPayload<{

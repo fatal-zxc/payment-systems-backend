@@ -3,6 +3,7 @@ import { BadRequestException, Logger } from '@nestjs/common'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Prisma, PrismaClient } from '@prisma/generated/client'
 import { UserCreateInput } from '@prisma/generated/models'
+import { hash } from 'argon2'
 import 'dotenv/config'
 
 import { plans } from './data'
@@ -34,7 +35,7 @@ async function seed() {
 			usersData.push({
 				email: `${firstName}.${lastName}@seed.ru`,
 				name: `${firstName} ${lastName}`,
-				password: '123456',
+				password: await hash('123456'),
 			})
 		}
 
