@@ -20,6 +20,9 @@
       "@api/*": [
         "src/api/*"
       ],
+      "@libs/*": [
+        "src/libs/*"
+      ],
       "@prisma/generated": [
         "prisma/generated"
       ],

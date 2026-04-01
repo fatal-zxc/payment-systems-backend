@@ -3,6 +3,8 @@ import { BillingPeriod, SubscriptionStatus, TransactionStatus } from '@prisma/ge
 
 import { PrismaService } from '@core/prisma/prisma.service'
 
+import { MailService } from '@libs/mail/mail.service'
+
 import { returnTransactionObject, TTransaction } from '@shared/objects'
 
 import { PaymentWebhookResult } from './interfaces'
@@ -11,7 +13,10 @@ import { PaymentWebhookResult } from './interfaces'
 export class PaymentHandler {
 	private readonly logger = new Logger(PaymentHandler.name)
 
-	constructor(private readonly prismaService: PrismaService) {}
+	constructor(
+		private readonly prismaService: PrismaService,
+		private readonly mailService: MailService
+	) {}
 
 	async processResult(result: PaymentWebhookResult) {
 		const { paymentId, planId, raw, status, transactionId } = result
@@ -69,8 +74,12 @@ export class PaymentHandler {
 				},
 			})
 
+			await this.mailService.sendPaymentSuccessEmail(subscription.user, updatedTransaction)
+
 			this.logger.log(`Payment success: ${subscription.user.email}`)
 		} else if (status === TransactionStatus.FAILED) {
+			await this.mailService.sendPaymentFailedEmail(subscription.user, updatedTransaction)
+
 			this.logger.log(`Payment failed: ${subscription.user.email}`)
 		}
 

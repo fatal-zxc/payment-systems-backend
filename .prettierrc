@@ -11,9 +11,9 @@
 	"importOrderSeparation": true,
 	"importOrderSortSpecifiers": true,
 	"importOrderCaseInsensitive": true,
-	"importOrderParserPlugins": ["classProperties", "decorators-legacy", "typescript"],
-	"importOrder": ["<THIRD_PARTY_MODULES>", "@core/(.*)$", "@shared/(.*)$", "@api/(.*)$", "@/(.*)$", "^../(.*)$", "^./(.*)$"],
-	"plugins": ["@trivago/prettier-plugin-sort-imports"],
+	"importOrderParserPlugins": ["classProperties", "decorators-legacy", "typescript", "jsx"],
+	"importOrder": ["<THIRD_PARTY_MODULES>", "@core/(.*)$", "@libs/(.*)$", "@shared/(.*)$", "@api/(.*)$", "@/(.*)$", "^../(.*)$", "^./(.*)$"],
+	"plugins": ["@trivago/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
 	"overrides": [
 		{
 			"files": "*.tsx",
