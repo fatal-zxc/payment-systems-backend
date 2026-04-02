@@ -1,8 +1,8 @@
 import { Controller, Get } from '@nestjs/common'
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger'
-import { User } from '@prisma/generated/client'
 
 import { Auth, Authorized } from '@shared/decorators'
+import { TUser } from '@shared/objects'
 
 import { UsersService } from './users.service'
 
@@ -16,7 +16,7 @@ export class UsersController {
 	@ApiBearerAuth()
 	@Auth()
 	@Get('me')
-	async getMe(@Authorized() user: User) {
+	async getMe(@Authorized() user: TUser) {
 		return user
 	}
 }

@@ -4,7 +4,7 @@ import { PaymentProvider, SubscriptionStatus, TransactionStatus } from '@prisma/
 
 import { PrismaService } from '@core/prisma/prisma.service'
 
-import { returnTransactionObject, returnUserObject } from '@shared/objects'
+import { returnPlanObject, returnTransactionObject, returnUserObject, returnUserSubscriptionObject } from '@shared/objects'
 
 import { YoomoneyService } from '@api/payment/providers/yoomoney/yoomoney.service'
 
@@ -48,7 +48,7 @@ export class SchedulerService {
 				orderBy: {
 					createdAt: 'desc',
 				},
-				select: returnTransactionObject,
+				select: { ...returnTransactionObject, userSubscription: { select: returnUserSubscriptionObject } },
 			})
 
 			if (!lastTransaction) continue
@@ -71,7 +71,10 @@ export class SchedulerService {
 							},
 						},
 					},
-					select: returnTransactionObject,
+					select: {
+						...returnTransactionObject,
+						userSubscription: { select: { ...returnUserSubscriptionObject, plan: { select: returnPlanObject } } },
+					},
 				})
 
 				try {

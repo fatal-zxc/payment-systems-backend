@@ -4,6 +4,7 @@ export const returnUserObject = {
 	id: true,
 	email: true,
 	name: true,
+	stripeCustomerId: true,
 } satisfies UserSelect
 
 export type TUser = UserGetPayload<{

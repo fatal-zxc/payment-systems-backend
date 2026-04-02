@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
-import { BillingPeriod, PaymentProvider, User } from '@prisma/generated/client'
+import { BillingPeriod, PaymentProvider } from '@prisma/generated/client'
 
 import { PrismaService } from '@core/prisma/prisma.service'
 
-import { returnPlanObject, returnTransactionObject } from '@shared/objects'
+import { returnPlanObject, returnTransactionObject, TUser } from '@shared/objects'
 
 import { InitPaymentRequest } from './dto'
 import { CryptopayService } from './providers/cryptopay/cryptopay.service'
@@ -29,7 +29,7 @@ export class PaymentService {
 		return transactions
 	}
 
-	async init(dto: InitPaymentRequest, user: User) {
+	async init(dto: InitPaymentRequest, user: TUser) {
 		const { planId, billingPeriod, provider } = dto
 
 		const plan = await this.prismaService.plan.findUnique({

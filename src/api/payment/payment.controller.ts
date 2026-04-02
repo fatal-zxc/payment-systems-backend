@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swa
 import { User } from '@prisma/generated/client'
 
 import { Auth, Authorized } from '@shared/decorators'
+import { TUser } from '@shared/objects'
 
 import { InitPaymentRequest, PaymentHistoryResponse } from './dto'
 import { PaymentService } from './payment.service'
@@ -29,7 +30,7 @@ export class PaymentController {
 	@ApiBearerAuth()
 	@Auth()
 	@Post('init')
-	async init(@Body() dto: InitPaymentRequest, @Authorized() user: User) {
+	async init(@Body() dto: InitPaymentRequest, @Authorized() user: TUser) {
 		return await this.paymentService.init(dto, user)
 	}
 }

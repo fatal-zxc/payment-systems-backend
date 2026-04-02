@@ -5,7 +5,7 @@ import { PrismaService } from '@core/prisma/prisma.service'
 
 import { MailService } from '@libs/mail/mail.service'
 
-import { returnTransactionObject, TTransaction } from '@shared/objects'
+import { returnTransactionObject, returnUserObject, returnUserSubscriptionObject, TTransaction } from '@shared/objects'
 
 import { PaymentWebhookResult } from './interfaces'
 
@@ -30,7 +30,10 @@ export class PaymentHandler {
 				externalId: paymentId,
 				providerMeta: raw,
 			},
-			select: returnTransactionObject,
+			select: {
+				...returnTransactionObject,
+				userSubscription: { select: { ...returnUserSubscriptionObject, user: { select: returnUserObject } } },
+			},
 		})
 
 		const subscription = updatedTransaction.userSubscription

@@ -5,6 +5,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt'
 
 import { PrismaService } from '@core/prisma/prisma.service'
 
+import { returnUserObject } from '@shared/objects'
 import { JwtPayload } from '@shared/types'
 
 @Injectable()
@@ -26,6 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
 			where: {
 				id: payload.id,
 			},
+			select: returnUserObject,
 		})
 
 		if (!user) throw new NotFoundException('Пользователь не найден')
