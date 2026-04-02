@@ -5,6 +5,7 @@ export const returnUserObject = {
 	email: true,
 	name: true,
 	stripeCustomerId: true,
+	isAutoRenewal: true,
 } satisfies UserSelect
 
 export type TUser = UserGetPayload<{

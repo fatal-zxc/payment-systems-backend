@@ -4,6 +4,8 @@ import { PaymentProvider, SubscriptionStatus, TransactionStatus } from '@prisma/
 
 import { PrismaService } from '@core/prisma/prisma.service'
 
+import { MailService } from '@libs/mail/mail.service'
+
 import { returnPlanObject, returnTransactionObject, returnUserObject, returnUserSubscriptionObject } from '@shared/objects'
 
 import { YoomoneyService } from '@api/payment/providers/yoomoney/yoomoney.service'
@@ -14,6 +16,7 @@ export class SchedulerService {
 
 	constructor(
 		private readonly prismaService: PrismaService,
+		private readonly mailService: MailService,
 		private readonly yoomoneyService: YoomoneyService
 	) {}
 
@@ -29,7 +32,19 @@ export class SchedulerService {
 				},
 				isAutoRenewal: true,
 			},
-			select: returnUserObject,
+			select: {
+				...returnUserObject,
+				transactions: {
+					where: {
+						status: TransactionStatus.SUCCESS,
+					},
+					orderBy: {
+						createdAt: 'desc',
+					},
+					take: 1,
+					select: { ...returnTransactionObject, userSubscription: { select: returnUserSubscriptionObject } },
+				},
+			},
 		})
 
 		if (!users.length) {
@@ -40,21 +55,12 @@ export class SchedulerService {
 		this.logger.log(`🔎 Found ${users.length} users for auto-billing`)
 
 		for (const user of users) {
-			const lastTransaction = await this.prismaService.transaction.findFirst({
-				where: {
-					userId: user.id,
-					status: TransactionStatus.SUCCESS,
-				},
-				orderBy: {
-					createdAt: 'desc',
-				},
-				select: { ...returnTransactionObject, userSubscription: { select: returnUserSubscriptionObject } },
-			})
+			const lastTransaction = user.transactions[0]
 
 			if (!lastTransaction) continue
 
 			if (lastTransaction.provider === PaymentProvider.YOOKASSA) {
-				const transaction = await this.prismaService.transaction.create({
+				const newTransaction = await this.prismaService.transaction.create({
 					data: {
 						amount: lastTransaction.amount,
 						provider: PaymentProvider.YOOKASSA,
@@ -78,20 +84,75 @@ export class SchedulerService {
 				})
 
 				try {
-					await this.yoomoneyService.createBySavedCard(transaction.userSubscription.plan, user, transaction)
+					await this.yoomoneyService.createBySavedCard(newTransaction.userSubscription.plan, user, newTransaction)
 				} catch (error) {
 					await this.prismaService.transaction.update({
 						where: {
-							id: transaction.id,
+							id: newTransaction.id,
 						},
 						data: {
 							status: TransactionStatus.FAILED,
 						},
+						select: {},
 					})
 
 					this.logger.error(`❌ Payment failed: ${user.email} - ${error.message}`)
 				}
 			}
 		}
+	}
+
+	@Cron('5 0 * * *')
+	async expireSubscriptions() {
+		const now = new Date()
+
+		const subscriptions = await this.prismaService.userSubscription.findMany({
+			where: {
+				status: SubscriptionStatus.ACTIVE,
+				endDate: { lte: now },
+			},
+			select: {
+				...returnUserSubscriptionObject,
+				user: {
+					select: {
+						...returnUserObject,
+						transactions: {
+							where: { status: TransactionStatus.SUCCESS },
+							orderBy: { createdAt: 'desc' },
+							take: 1,
+							select: returnTransactionObject,
+						},
+					},
+				},
+				plan: { select: returnPlanObject },
+			},
+		})
+
+		const filteredSubscriptions = subscriptions.filter(sub => {
+			const lastTransaction = sub.user.transactions[0]
+
+			if (!lastTransaction) return false
+
+			const isManualProvider = lastTransaction.provider === PaymentProvider.CRYPTOPAY
+			const isAutoRenewalDisabled = !sub.user.isAutoRenewal
+
+			return isManualProvider || isAutoRenewalDisabled
+		})
+
+		if (!filteredSubscriptions.length) {
+			this.logger.log(`⚠️ No subscriptions to process`)
+			return
+		}
+
+		await this.prismaService.userSubscription.updateMany({
+			where: {
+				id: { in: filteredSubscriptions.map(sub => sub.id) },
+			},
+			data: { status: SubscriptionStatus.EXPIRED },
+		})
+
+		await Promise.all(filteredSubscriptions.map(sub => this.mailService.sendSubscriptionExpiredEmail(sub.user.email)))
+
+		this.logger.log(`🔥 Expired ${filteredSubscriptions.length} subscriptions`)
 	}
 }
