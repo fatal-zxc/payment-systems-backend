@@ -133,7 +133,7 @@ export class StripeService {
 	async parseEvent(rawBody: Buffer, signature: string): Promise<Stripe.Event> {
 		try {
 			return await this.stripe.webhooks.constructEventAsync(rawBody, signature, this.WEBHOOK_SECRET)
-		} catch (error) {
+		} catch (error: any) {
 			throw new BadRequestException(`Webhook signature verification failed: ${error.message}`)
 		}
 	}

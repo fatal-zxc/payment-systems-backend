@@ -85,7 +85,7 @@ export class SchedulerService {
 
 				try {
 					await this.yoomoneyService.createBySavedCard(newTransaction.userSubscription.plan, user, newTransaction)
-				} catch (error) {
+				} catch (error: any) {
 					await this.prismaService.transaction.update({
 						where: {
 							id: newTransaction.id,

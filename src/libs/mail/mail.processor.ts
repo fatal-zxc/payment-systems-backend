@@ -24,7 +24,7 @@ export class MailProcessor extends WorkerHost {
 			})
 
 			this.logger.log(`📧 Email successfully sent to ${email}`)
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`❌ Error sending email to ${email}: ${error.message}`)
 		}
 	}

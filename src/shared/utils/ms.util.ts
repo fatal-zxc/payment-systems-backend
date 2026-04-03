@@ -67,7 +67,7 @@ function msFn(value: StringValue | number, options?: Options): number | string {
 			return format(value, options)
 		}
 		throw new Error('Value provided to ms() must be a string or number.')
-	} catch (error) {
+	} catch (error: any) {
 		const message = isError(error) ? `${error.message}. value=${JSON.stringify(value)}` : 'An unknown error has occurred.'
 		throw new Error(message)
 	}
@@ -152,7 +152,6 @@ export function parseStrict(value: StringValue): number {
 	return parse(value)
 }
 
-// eslint-disable-next-line import/no-default-export
 export default msFn
 
 /**
