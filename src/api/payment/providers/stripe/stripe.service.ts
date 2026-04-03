@@ -66,6 +66,7 @@ export class StripeService {
 				provider: 'stripe',
 				transactionId: transaction.id,
 				planId: plan.id,
+				userId: user.id,
 			},
 		})
 
@@ -76,12 +77,25 @@ export class StripeService {
 		switch (event.type) {
 			case 'checkout.session.completed': {
 				const payment = event.data.object
+				const session = await this.stripe.checkout.sessions.retrieve(payment.id, { expand: ['line_items'] })
 
 				if (!payment.metadata) return null
 
-				const { transactionId, planId } = payment.metadata
+				const { transactionId, planId, userId } = payment.metadata
+				const stripeSubscriptionId: string | undefined =
+					typeof session.subscription === 'string' ? session.subscription : session.subscription?.id
 
-				if (!transactionId || !planId) return null
+				if (!transactionId || !planId || !userId) return null
+
+				if (stripeSubscriptionId) {
+					await this.prismaService.userSubscription.update({
+						where: {
+							userId,
+						},
+						data: { stripeSubscriptionId },
+						select: {},
+					})
+				}
 
 				return {
 					transactionId,
@@ -128,6 +142,10 @@ export class StripeService {
 			default:
 				return null
 		}
+	}
+
+	async updateAutoRenewal(subscriptionId: string, isAutoRenewal: boolean) {
+		await this.stripe.subscriptions.update(subscriptionId, { cancel_at_period_end: !isAutoRenewal })
 	}
 
 	async parseEvent(rawBody: Buffer, signature: string): Promise<Stripe.Event> {
