@@ -15,12 +15,13 @@ export class YoomoneyService {
 	private readonly paymentService: PaymentService
 
 	private readonly ALLOWED_IPS: string[]
+	private readonly FRONTEND_URL: string
 
 	constructor(
 		private readonly yookassaService: YookassaService,
 		private readonly configService: ConfigService
 	) {
-		this.paymentService = yookassaService.payments
+		this.paymentService = this.yookassaService.payments
 		this.ALLOWED_IPS = [
 			'185.71.76.0/27',
 			'185.71.77.0/27',
@@ -30,6 +31,7 @@ export class YoomoneyService {
 			'77.75.154.128/25',
 			'2a02:5180::/32',
 		]
+		this.FRONTEND_URL = this.configService.getOrThrow<string>('FRONTEND_URL')
 	}
 
 	async create(plan: TPlan, transaction: TTransaction) {
@@ -44,7 +46,7 @@ export class YoomoneyService {
 			},
 			confirmation: {
 				type: ConfirmationEnum.REDIRECT,
-				return_url: this.configService.getOrThrow<string>('FRONTEND_URL'),
+				return_url: `${this.FRONTEND_URL}/payment/${transaction.id}`,
 			},
 			save_payment_method: true,
 			metadata: {

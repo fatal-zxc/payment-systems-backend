@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { PaymentProvider, TransactionStatus } from '@prisma/generated/enums'
 
-export class PaymentHistoryResponse {
+import { PlanResponse } from './plan.response'
+import { SubscriptionResponse } from './subscription.response'
+
+export class TransactionReponse {
 	@ApiProperty({
 		description: 'id транзакции',
 		example: '01KMNQ8PYGTX7REQADKT1AA933',
@@ -15,10 +18,9 @@ export class PaymentHistoryResponse {
 	createdAt: Date
 
 	@ApiProperty({
-		description: 'Название плана подписки',
-		example: 'Premium',
+		type: SubscriptionResponse,
 	})
-	plan: string
+	userSubscription: SubscriptionResponse
 
 	@ApiProperty({
 		description: 'Сумма транзакции',

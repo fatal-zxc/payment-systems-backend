@@ -12,7 +12,9 @@ import { PaymentWebhookResult } from '@api/payment/interfaces'
 @Injectable()
 export class StripeService {
 	private readonly stripe: Stripe
+
 	private readonly WEBHOOK_SECRET: string
+	private readonly FRONTEND_URL: string
 
 	constructor(
 		private readonly configService: ConfigService,
@@ -22,6 +24,7 @@ export class StripeService {
 			apiVersion: '2026-03-25.dahlia',
 		})
 		this.WEBHOOK_SECRET = this.configService.getOrThrow<string>('STRIPE_WEBHOOK_SECRET')
+		this.FRONTEND_URL = this.configService.getOrThrow<string>('FRONTEND_URL')
 	}
 
 	async create(plan: TPlan, transaction: TTransaction, user: TUser, billingPeriod: BillingPeriod) {
@@ -60,8 +63,8 @@ export class StripeService {
 				},
 			],
 			mode: 'subscription',
-			success_url: this.configService.getOrThrow<string>('FRONTEND_URL'),
-			cancel_url: this.configService.getOrThrow<string>('FRONTEND_URL'),
+			success_url: `${this.FRONTEND_URL}/payment/${transaction.id}`,
+			cancel_url: this.FRONTEND_URL,
 			metadata: {
 				provider: 'stripe',
 				transactionId: transaction.id,

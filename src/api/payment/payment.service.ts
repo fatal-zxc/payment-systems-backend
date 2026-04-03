@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import { BillingPeriod, PaymentProvider } from '@prisma/generated/client'
+import { ConfirmationEnum } from 'nestjs-yookassa'
 
 import { PrismaService } from '@core/prisma/prisma.service'
 
-import { returnPlanObject, returnTransactionObject, TUser } from '@shared/objects'
+import { returnPlanObject, returnTransactionObject, returnUserSubscriptionObject, TUser } from '@shared/objects'
 
 import { InitPaymentRequest } from './dto'
 import { CryptopayService } from './providers/cryptopay/cryptopay.service'
@@ -20,13 +21,28 @@ export class PaymentService {
 	) {}
 
 	async getHistory(userId: string) {
-		const transactions = await this.prismaService.transaction.findMany({
+		return this.prismaService.transaction.findMany({
 			where: { userId },
 			orderBy: { createdAt: 'desc' },
-			select: returnTransactionObject,
+			select: {
+				...returnTransactionObject,
+				userSubscription: { select: { ...returnUserSubscriptionObject, plan: { select: returnPlanObject } } },
+			},
+		})
+	}
+
+	async getById(id: string) {
+		const transaction = await this.prismaService.transaction.findUnique({
+			where: { id },
+			select: {
+				...returnTransactionObject,
+				userSubscription: { select: { ...returnUserSubscriptionObject, plan: { select: returnPlanObject } } },
+			},
 		})
 
-		return transactions
+		if (!transaction) throw new NotFoundException('Транзакция не найдена')
+
+		return transaction
 	}
 
 	async init(dto: InitPaymentRequest, user: TUser) {
@@ -76,17 +92,28 @@ export class PaymentService {
 			select: returnTransactionObject,
 		})
 
-		let payment
+		let payment: any
+		let url: string = ''
 
 		switch (provider) {
 			case PaymentProvider.YOOKASSA:
-				payment = await this.yoomoneyService.create(plan, transaction)
+				const yookassaPayment = await this.yoomoneyService.create(plan, transaction)
+				payment = yookassaPayment
+				if (yookassaPayment.confirmation && yookassaPayment.confirmation.type === ConfirmationEnum.REDIRECT) {
+					url = yookassaPayment.confirmation.confirmation_url
+				}
 				break
 			case PaymentProvider.STRIPE:
-				payment = await this.stripeService.create(plan, transaction, user, billingPeriod)
+				const stripePayment = await this.stripeService.create(plan, transaction, user, billingPeriod)
+				payment = stripePayment
+				if (stripePayment.url) {
+					url = stripePayment.url
+				}
 				break
 			case PaymentProvider.CRYPTOPAY:
-				payment = await this.cryptopayService.createInvoice(plan, transaction)
+				const cryptopayPayment = await this.cryptopayService.createInvoice(plan, transaction)
+				payment = cryptopayPayment
+				url = cryptopayPayment.mini_app_invoice_url
 				break
 		}
 
@@ -99,6 +126,6 @@ export class PaymentService {
 			},
 		})
 
-		return payment
+		return { url }
 	}
 }

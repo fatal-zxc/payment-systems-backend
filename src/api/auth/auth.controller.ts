@@ -20,7 +20,7 @@ export class AuthController {
 		description: 'Запись с таким значением уже существует',
 	})
 	@Post('register')
-	async register(@Res({ passthrough: true }) res: Response, @Body() dto: RegisterRequest) {
+	async register(@Res({ passthrough: true }) res: Response, @Body() dto: RegisterRequest): Promise<AuthResponse> {
 		return await this.authService.register(res, dto)
 	}
 
@@ -31,7 +31,7 @@ export class AuthController {
 		type: AuthResponse,
 	})
 	@Post('login')
-	async login(@Res({ passthrough: true }) res: Response, @Body() dto: LoginRequest) {
+	async login(@Res({ passthrough: true }) res: Response, @Body() dto: LoginRequest): Promise<AuthResponse> {
 		return await this.authService.login(res, dto)
 	}
 
@@ -42,7 +42,7 @@ export class AuthController {
 		type: AuthResponse,
 	})
 	@Post('refresh')
-	async refresh(@Res({ passthrough: true }) res: Response, @Req() req: Request) {
+	async refresh(@Res({ passthrough: true }) res: Response, @Req() req: Request): Promise<AuthResponse> {
 		return await this.authService.refresh(req, res)
 	}
 

@@ -1,7 +1,8 @@
 import { Controller, Get, Param } from '@nestjs/common'
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger'
 
-import { PlanResponse } from './dto'
+import { PlanResponse } from '@shared/responses'
+
 import { PlanService } from './plan.service'
 
 @ApiTags('Plans')

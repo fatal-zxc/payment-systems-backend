@@ -5,6 +5,8 @@ export const returnUserSubscriptionObject = {
 	endDate: true,
 	planId: true,
 	stripeSubscriptionId: true,
+	status: true,
+	startDate: true,
 } satisfies UserSubscriptionSelect
 
 export type TUserSubscription = UserSubscriptionGetPayload<{

@@ -1,15 +1,14 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
-import { User } from '@prisma/generated/client'
-import { hash, verify } from 'argon2'
+import { verify } from 'argon2'
 import { Request, Response } from 'express'
 import type { StringValue } from 'ms'
 
-import { PrismaService } from '@core/prisma/prisma.service'
-
 import { JwtPayload } from '@shared/types'
 import { isDev, msFn } from '@shared/utils'
+
+import { UsersService } from '@api/users/users.service'
 
 import { LoginRequest, RegisterRequest } from './dto'
 
@@ -21,7 +20,7 @@ export class AuthService {
 	private readonly COOKIES_DOMAIN: string
 
 	constructor(
-		private readonly prismaService: PrismaService,
+		private readonly usersService: UsersService,
 		private readonly configService: ConfigService,
 		private readonly jwtService: JwtService
 	) {
@@ -33,33 +32,21 @@ export class AuthService {
 	async register(res: Response, dto: RegisterRequest) {
 		const { name, email, password } = dto
 
-		const user = await this.prismaService.user.create({
-			data: {
-				email,
-				name,
-				password: await hash(password),
-			},
-		})
+		const user = await this.usersService.create(email, name, password)
 
-		return this.auth(res, user)
+		return this.auth(res, user.id)
 	}
 
 	async login(res: Response, dto: LoginRequest) {
 		const { email, password } = dto
 
-		const user = await this.prismaService.user.findUnique({
-			where: {
-				email,
-			},
-		})
-
-		if (!user) throw new BadRequestException('Неверный пароль или логин')
+		const user = await this.usersService.getByEmailWithPassword(email)
 
 		const isValidPassword = await verify(user.password, password)
 
 		if (!isValidPassword) throw new BadRequestException('Неверный пароль или логин')
 
-		return this.auth(res, user)
+		return this.auth(res, user.id)
 	}
 
 	async refresh(req: Request, res: Response) {
@@ -73,34 +60,24 @@ export class AuthService {
 
 		if (!payload) throw new UnauthorizedException('Не валидный куки авторизации')
 
-		const user = await this.prismaService.user.findUnique({
-			where: {
-				id: payload.id,
-			},
-		})
+		const user = await this.usersService.getById(payload.id)
 
-		if (!user) throw new UnauthorizedException('Не валидный куки авторизации')
-
-		return this.auth(res, user)
+		return this.auth(res, user.id)
 	}
 
 	async logout(res: Response) {
 		return this.setCookie(res, '', new Date(0))
 	}
 
-	private async auth(res: Response, user: User) {
-		const { accessToken, refreshToken, refreshTokenExpires } = await this.generateTokens(user)
+	private async auth(res: Response, userId: string) {
+		const { accessToken, refreshToken, refreshTokenExpires } = await this.generateTokens({ id: userId })
 
 		this.setCookie(res, refreshToken, refreshTokenExpires)
 
 		return { accessToken }
 	}
 
-	private async generateTokens(user: User) {
-		const payload: JwtPayload = {
-			id: user.id,
-		}
-
+	private async generateTokens(payload: JwtPayload) {
 		const refreshTokenExpires = new Date(Date.now() + msFn(this.JWT_REFRESH_TOKEN_TTL))
 
 		const accessToken = await this.jwtService.signAsync(payload, {

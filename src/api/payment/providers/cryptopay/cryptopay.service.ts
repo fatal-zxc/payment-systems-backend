@@ -24,12 +24,14 @@ import {
 @Injectable()
 export class CryptopayService {
 	private readonly TOKEN: string
+	private readonly FRONTEND_URL: string
 
 	constructor(
 		private readonly configService: ConfigService,
 		private readonly httpService: HttpService
 	) {
 		this.TOKEN = this.configService.getOrThrow<string>('CRYPTO_PAY_TOKEN')
+		this.FRONTEND_URL = this.configService.getOrThrow<string>('FRONTEND_URL')
 	}
 
 	async createInvoice(plan: TPlan, transaction: TTransaction) {
@@ -40,7 +42,7 @@ export class CryptopayService {
 			description: `Оплата подписки на тарифный план "${plan.title}"`,
 			hidden_message: 'Спасибо за оплату! Подписка активирована.',
 			paid_btn_name: PaidButtonName.CALLBACK,
-			paid_btn_url: this.configService.getOrThrow<string>('FRONTEND_URL'),
+			paid_btn_url: `${this.FRONTEND_URL}/payment/${transaction.id}`,
 			payload: Buffer.from(
 				JSON.stringify({
 					provider: 'cryptopay',

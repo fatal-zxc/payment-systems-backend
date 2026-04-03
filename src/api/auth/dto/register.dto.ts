@@ -4,7 +4,7 @@ import { IsEmail, IsNotEmpty, IsString, Length, MinLength } from 'class-validato
 export class RegisterRequest {
 	@ApiProperty({
 		example: 'John Doe',
-		description: 'user name',
+		description: 'User name',
 	})
 	@IsString()
 	@IsNotEmpty()
@@ -13,7 +13,7 @@ export class RegisterRequest {
 
 	@ApiProperty({
 		example: 'john@example.com',
-		description: 'user email',
+		description: 'User email address',
 	})
 	@IsString()
 	@IsNotEmpty()
@@ -22,7 +22,7 @@ export class RegisterRequest {
 
 	@ApiProperty({
 		example: 'strongPassword123',
-		description: 'user password',
+		description: 'User password',
 	})
 	@IsString()
 	@IsNotEmpty()
