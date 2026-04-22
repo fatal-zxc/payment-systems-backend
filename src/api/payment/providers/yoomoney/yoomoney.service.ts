@@ -46,7 +46,7 @@ export class YoomoneyService {
 			},
 			confirmation: {
 				type: ConfirmationEnum.REDIRECT,
-				return_url: `${this.FRONTEND_URL}/payment/${transaction.id}`,
+				return_url: `${this.FRONTEND_URL}/payment/${transaction.id}/success`,
 			},
 			save_payment_method: true,
 			metadata: {

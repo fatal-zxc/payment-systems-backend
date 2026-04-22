@@ -54,7 +54,7 @@ export class StripeService {
 
 		const session = await this.stripe.checkout.sessions.create({
 			payment_method_types: ['card'],
-			customer_email: user.email,
+			// customer_email: user.email,
 			customer: customerId,
 			line_items: [
 				{
@@ -63,7 +63,7 @@ export class StripeService {
 				},
 			],
 			mode: 'subscription',
-			success_url: `${this.FRONTEND_URL}/payment/${transaction.id}`,
+			success_url: `${this.FRONTEND_URL}/payment/${transaction.id}/success`,
 			cancel_url: this.FRONTEND_URL,
 			metadata: {
 				provider: 'stripe',

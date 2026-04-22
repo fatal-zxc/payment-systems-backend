@@ -72,7 +72,7 @@ export class PaymentService {
 				userSubscription: {
 					connectOrCreate: {
 						where: {
-							id: user.id,
+							userId: user.id,
 						},
 						create: {
 							user: {

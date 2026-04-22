@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger'
-import { PaymentProvider, TransactionStatus } from '@prisma/generated/enums'
+import { BillingPeriod, PaymentProvider, TransactionStatus } from '@prisma/generated/enums'
 
 import { PlanResponse } from './plan.response'
 import { SubscriptionResponse } from './subscription.response'
@@ -41,4 +41,11 @@ export class TransactionReponse {
 		enum: TransactionStatus,
 	})
 	status: TransactionStatus
+
+	@ApiProperty({
+		description: 'Период подписки',
+		example: BillingPeriod.MONTHLY,
+		enum: BillingPeriod,
+	})
+	billingPeriod: BillingPeriod
 }

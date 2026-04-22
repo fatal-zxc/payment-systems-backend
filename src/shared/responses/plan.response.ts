@@ -23,6 +23,7 @@ export class PlanResponse {
 		description: 'Список возможностей плана',
 		example: ['Безлимитный доступ к контенту', 'Приоритетная поддержка', 'Улучшенная аналитика'],
 		isArray: true,
+		type: 'string',
 	})
 	features: string[]
 

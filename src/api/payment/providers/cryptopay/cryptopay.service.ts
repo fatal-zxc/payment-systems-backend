@@ -42,7 +42,7 @@ export class CryptopayService {
 			description: `Оплата подписки на тарифный план "${plan.title}"`,
 			hidden_message: 'Спасибо за оплату! Подписка активирована.',
 			paid_btn_name: PaidButtonName.CALLBACK,
-			paid_btn_url: `${this.FRONTEND_URL}/payment/${transaction.id}`,
+			paid_btn_url: `${this.FRONTEND_URL}/payment/${transaction.id}/success`,
 			payload: Buffer.from(
 				JSON.stringify({
 					provider: 'cryptopay',

@@ -20,6 +20,7 @@ export class SchedulerService {
 		private readonly yoomoneyService: YoomoneyService
 	) {}
 
+	// auto-billing
 	@Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
 	async handleAutoBilling() {
 		const users = await this.prismaService.user.findMany({
@@ -102,6 +103,7 @@ export class SchedulerService {
 		}
 	}
 
+	// expire-subscriptions
 	@Cron('5 0 * * *')
 	async expireSubscriptions() {
 		const now = new Date()
